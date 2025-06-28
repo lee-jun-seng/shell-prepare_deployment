@@ -95,7 +95,11 @@ read_options() {
     echo "Output Directory: $OUT_DIR"
     echo "Git Target Branch: $GIT_TARGET"
     echo "Git Incoming Branch: $GIT_INCOMING"
-    [[ -n "$MODULE_NAME" ]] && echo "Module Name: $MODULE_NAME"
+    if [[ -n "$MODULE_NAME" ]]; then
+        echo "Module Name: $MODULE_NAME"
+    else
+        echo "Module Name: Not provided, will be guessed from Git remote URL."
+    fi
     echo "" # Add an empty line for better readability
 }
 
