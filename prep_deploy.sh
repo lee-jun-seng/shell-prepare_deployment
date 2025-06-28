@@ -124,7 +124,7 @@ clean_out_dir() {
       echo "Output directory '$OUT_DIR' already exists."
 
       # Ask for confirmation before deleting the output directory
-      read -p "Do you want to delete it? DANGER. CANNOT BE UNDONE! (y/n): " confirm
+      read -p "Do you want to delete it? DANGER! PERMANENT DELETE AND CANNOT BE UNDONE! (y/n): " confirm
       if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
           echo "Deleting existing output directory '$OUT_DIR'..."
           rm -rf "$OUT_DIR"
