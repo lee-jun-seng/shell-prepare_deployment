@@ -23,7 +23,7 @@
 #
 ################################################################################################################
 
-# Function to read options
+# Read options
 read_options() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -56,7 +56,7 @@ read_options() {
     fi
 }
 
-# Function to perform Git checks on the source directory
+# Perform Git checks on the source directory
 check_git_repository() {
     echo "Performing Git checks on the source directory '$SOURCE_DIR'..."
 
@@ -95,7 +95,7 @@ check_git_repository() {
     echo -e "Git checks completed successfully.\n"
 }
 
-# Function to list Git changed files between two Git branches
+# List Git changed files between two Git branches
 list_git_changed_files() {
     local target_branch="$1"
     local incoming_branch="$2"
@@ -138,5 +138,4 @@ echo "" # Add an empty line for better readability
 
 check_git_repository
 
-# List changed files between the target and incoming branches
 list_git_changed_files "$GIT_TARGET" "$GIT_INCOMING"
