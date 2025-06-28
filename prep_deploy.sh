@@ -265,6 +265,13 @@ guess_module_name() {
 
 read_options "$@"
 
+# Request confirmation before proceeding
+read -p "Kindly verify all parsed options before proceeding to preparing deployment folder. Do you want to proceed? (y/n): " confirm
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "Exiting. No changes made."
+    exit 0
+fi
+
 clean_out_dir
 
 check_git_repository
