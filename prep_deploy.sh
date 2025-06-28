@@ -56,14 +56,43 @@ read_options() {
     fi
 }
 
-# Function to check if the source directory is a Git repository
+# Function to perform Git checks on the source directory
 check_git_repository() {
+    echo "Performing Git checks on the source directory '$SOURCE_DIR'..."
+
+    # Check if is valid Git repository
     if [[ ! -d "$SOURCE_DIR/.git" ]]; then
         echo "Error: The source directory '$SOURCE_DIR' is not a Git repository."
         exit 2
     fi
 
-    echo -e "The source directory '$SOURCE_DIR' is a valid Git repository.\n"
+    echo "Is a valid Git repository."
+
+    # Check if the target branch exist in the Git repository
+    if ! git -C "$SOURCE_DIR" show-ref --verify --quiet "refs/heads/$GIT_TARGET"; then
+        echo "Error: The target branch '$GIT_TARGET' does not exist in the Git repository."
+        exit 2
+    fi
+
+    echo "Target branch '$GIT_TARGET' exists."
+
+    # Check if the incoming branch exists in the Git repository
+    if ! git -C "$SOURCE_DIR" show-ref --verify --quiet "refs/heads/$GIT_INCOMING"; then
+        echo "Error: The incoming branch '$GIT_INCOMING' does not exist in the Git repository."
+        exit 2
+    fi
+
+    echo "Incoming branch '$GIT_INCOMING' exists."
+
+    # Check if target and incoming branches are different
+    if git -C "$SOURCE_DIR" diff --quiet "$GIT_TARGET" "$GIT_INCOMING"; then
+        echo "Warning: The target branch '$GIT_TARGET' and incoming branch '$GIT_INCOMING' are the same. No changes to list."
+        exit 0
+    fi
+
+    echo "Target and incoming branches are different."
+
+    echo -e "Git checks completed successfully.\n"
 }
 
 # Function to list Git changed files between two Git branches
@@ -105,8 +134,6 @@ echo "Git Target Branch: $GIT_TARGET"
 echo "Git Incoming Branch: $GIT_INCOMING"
 echo "" # Add an empty line for better readability
 
-# Check if the source directory is a Git repository
-echo "Checking if the source directory '$SOURCE_DIR' is a Git repository..."
 check_git_repository
 
 # List changed files between the target and incoming branches
