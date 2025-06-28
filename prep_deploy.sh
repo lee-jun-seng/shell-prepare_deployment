@@ -275,10 +275,11 @@ if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
     echo "Exiting. No changes made."
     exit 0
 fi
-
-clean_out_dir
+echo "" # Add an empty line for better readability
 
 check_git_repository
+
+clean_out_dir
 
 guess_module_name
 
