@@ -14,15 +14,14 @@
 # - It also creates a directory called _sql/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
 #
 # This script accept below options:
-# 1. --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
-# 2. --out: The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.
-# 3. --git-target: The target branch for the Git repository. Mandatory.
-# 4. --git-incoming: The incoming branch for the Git repository. Mandatory.
-# 5. --module: The module name to be used in the output directory. Optional.
-#                If not provided, the script will guess it from the Git remote URL.
+# 1. -s, --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
+# 2. -o, --out: The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.
+# 3. -t, --git-target: The target branch name for the Git repository. Mandatory.
+# 4. -i, --git-incoming: The incoming branch name for the Git repository. Mandatory.
+# 5. -m, --module: The module name to be used in the output directory. Optional. If not provided, the script will guess it from the Git remote URL.
 #
-# Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch
-# Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch --module hrms/epay
+# Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch [--module module_name]
+# Usage: ./prep_deploy.sh -s /path/to/source/ -o /path/to/out/ -t target_branch -i incoming_branch [-m module_name]
 #
 # Exit codes:
 # 1: Unknown option
@@ -41,14 +40,14 @@ README_DIR="_readme"
 # Function: usage
 # Description: Displays the usage information for the script, including available options and their descriptions.
 usage() {
-    echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
+    echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch [--module module_name]"
     echo "Options:"
-    echo "  --source       The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory."
-    echo "  --out          The output directory to copy files to. Must be an absolute path. Mandatory."
-    echo "  --git-target   The target branch for the Git repository. Mandatory."
-    echo "  --git-incoming The incoming branch for the Git repository. Mandatory."
-    echo "  --module       The module name to be used in the output directory. Optional."
-    echo "                   If not provided, the script will guess it from the Git remote URL."
+    echo "  -s, --source       The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory."
+    echo "  -o, --out          The output directory to copy files to. Must be an absolute path. Mandatory."
+    echo "  -t, --git-target   The target branch name for the Git repository. Mandatory."
+    echo "  -i, --git-incoming The incoming branch name for the Git repository. Mandatory."
+    echo "  -m, --module       The module name to be used in the output directory. Optional."
+    echo "                       If not provided, the script will guess it from the Git remote URL."
 }
 
 # Function: read_options
@@ -56,23 +55,23 @@ usage() {
 read_options() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --source)
+            --source|-s)
                 SOURCE_DIR="$2"
                 shift 2
                 ;;
-            --out)
+            --out|-o)
                 OUT_DIR="$2"
                 shift 2
                 ;;
-            --git-target)
+            --git-target|-t)
                 GIT_TARGET="$2"
                 shift 2
                 ;;
-            --git-incoming)
+            --git-incoming|-i)
                 GIT_INCOMING="$2"
                 shift 2
                 ;;
-            --module)
+            --module|-m)
                 MODULE_NAME="$2"
                 shift 2
                 ;;
