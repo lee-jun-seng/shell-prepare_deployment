@@ -15,7 +15,7 @@
 # The script will first check if the source directory is a Git repository.
 # If it is, it will Git list the files changed between the target and incoming
 # branches. It will write the list of files to a file called
-# "changed_files.txt" in the /path/to/out/_backup/ directory.
+# "diff_files.txt" in the /path/to/out/_backup/ directory.
 #
 # Exit codes:
 # 1: Unknown option
@@ -99,24 +99,26 @@ check_git_repository() {
 list_git_changed_files() {
     local target_branch="$1"
     local incoming_branch="$2"
-    local output_file="$OUT_DIR/_backup/changed_files.txt"
+    local diff_file="$OUT_DIR/_backup/diff_files.txt"
 
-    # Ensure the output directory exists
-    mkdir -p "$(dirname "$output_file")" && touch "$output_file"
+    echo "Listing changed files between branches '$target_branch' and '$incoming_branch'..."
+
+    # Ensure the output directory exists. Create the file.
+    mkdir -p "$(dirname "$diff_file")" && touch "$diff_file"
 
     # Change to the source directory
     cd "$SOURCE_DIR" || exit 2
 
     # List changed files and write to the output file
-    git diff --name-status "$target_branch" "$incoming_branch" > "$output_file"
+    git diff --name-status "$target_branch" "$incoming_branch" > "$diff_file"
 
     if [[ $? -ne 0 ]]; then
         echo "Error: Failed to list changed files between branches '$target_branch' and '$incoming_branch'."
         exit 2
     fi
 
-    echo "Changed files have been written to '$output_file'. Summary below:"
-    cat "$output_file"
+    echo "Changed files have been written to '$diff_file'. Summary below:"
+    cat "$diff_file"
 }
 
 ################################################################################################################
@@ -137,5 +139,4 @@ echo "" # Add an empty line for better readability
 check_git_repository
 
 # List changed files between the target and incoming branches
-echo "Listing changed files between branches '$GIT_TARGET' and '$GIT_INCOMING' in the repository at '$SOURCE_DIR'..."
 list_git_changed_files "$GIT_TARGET" "$GIT_INCOMING"
