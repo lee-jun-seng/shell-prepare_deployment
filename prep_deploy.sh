@@ -4,12 +4,13 @@
 
 ################################################################################################################
 #
-# This script accept 4 options:
+# This script accept below options:
 # 1. --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
 # 2. --out: The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.
 # 3. --git-target: The target branch for the Git repository. Mandatory.
 # 4. --git-incoming: The incoming branch for the Git repository. Mandatory.
 # 5. --module: The module name to be used in the output directory. Optional.
+#                If not provided, the script will guess it from the Git remote URL.
 #
 # Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch
 #
@@ -34,6 +35,8 @@ DEVELOPMENT_DIR="azureDev"
 MIGRATION_DIR="_sql"
 README_DIR="_readme"
 
+# Functions declaration
+
 # Display usage information
 usage() {
     echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
@@ -43,6 +46,7 @@ usage() {
     echo "  --git-target   The target branch for the Git repository. Mandatory."
     echo "  --git-incoming The incoming branch for the Git repository. Mandatory."
     echo "  --module       The module name to be used in the output directory. Optional."
+    echo "                   If not provided, the script will guess it from the Git remote URL."
 }
 
 # Read options
@@ -228,6 +232,22 @@ prepare_deployment_folder() {
     fi
 }
 
+# Guess the module name if not provided from git remote URL
+guess_module_name() {
+    local guessed_mod_name=""
+
+    if [[ -z "$MODULE_NAME" ]]; then
+        echo "Module name not provided. Guessing it from the Git remote URL..."
+        guessed_mod_name=$(basename "$(git -C "$SOURCE_DIR" config --get remote.origin.url)" .git)
+
+        guessed_mod_name=${guessed_mod_name//-//} # Replace all occurences - to /
+        echo "Guessed module name: $guessed_mod_name"
+
+        MODULE_NAME="$guessed_mod_name"
+        echo "" # Add an empty line for better readability
+    fi
+}
+
 ################################################################################################################
 
 # Main script execution
@@ -237,6 +257,8 @@ read_options "$@"
 clean_out_dir
 
 check_git_repository
+
+guess_module_name
 
 list_git_changed_files "$GIT_TARGET" "$GIT_INCOMING"
 
