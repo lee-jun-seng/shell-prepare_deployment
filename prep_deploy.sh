@@ -9,6 +9,7 @@
 # 2. --out: The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.
 # 3. --git-target: The target branch for the Git repository. Mandatory.
 # 4. --git-incoming: The incoming branch for the Git repository. Mandatory.
+# 5. --module: The module name to be used in the output directory. Optional.
 #
 # Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch
 #
@@ -41,6 +42,7 @@ usage() {
     echo "  --out          The output directory to copy files to. Must be an absolute path. Mandatory."
     echo "  --git-target   The target branch for the Git repository. Mandatory."
     echo "  --git-incoming The incoming branch for the Git repository. Mandatory."
+    echo "  --module       The module name to be used in the output directory. Optional."
 }
 
 # Read options
@@ -63,6 +65,10 @@ read_options() {
                 GIT_INCOMING="$2"
                 shift 2
                 ;;
+            --module)
+                MODULE_NAME="$2"
+                shift 2
+                ;;
             *)
                 echo "Unknown option: $1"
                 usage
@@ -71,6 +77,7 @@ read_options() {
         esac
     done
 
+    # Check if mandatory options are provided
     if [[ -z "$SOURCE_DIR" || -z "$OUT_DIR" || -z "$GIT_TARGET" || -z "$GIT_INCOMING" ]]; then
         usage
         exit 1
@@ -82,6 +89,7 @@ read_options() {
     echo "Output Directory: $OUT_DIR"
     echo "Git Target Branch: $GIT_TARGET"
     echo "Git Incoming Branch: $GIT_INCOMING"
+    [[ -n "$MODULE_NAME" ]] && echo "Module Name: $MODULE_NAME"
     echo "" # Add an empty line for better readability
 }
 
@@ -178,32 +186,32 @@ prepare_deployment_folder() {
     echo "" # Add an empty line for better readability
 
     # Create output directories
-    mkdir -p "$OUT_DIR/$PROD_BACKUP_DIR" "$OUT_DIR/$DEVELOPMENT_DIR"
+    mkdir -p "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME" "$OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME"
 
     # Checkout the target branch and copy changed files to production backup directory
-    echo "Checking out target branch '$GIT_TARGET' and copying changed files to '$OUT_DIR/$PROD_BACKUP_DIR'..."
+    echo "Checking out target branch '$GIT_TARGET' and copying changed files to '$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME'..."
     git -C "$SOURCE_DIR" checkout --quiet "$GIT_TARGET"
 
     # Copy changed files from diff_files.txt
     while IFS= read -r line; do
         file_path=$(echo "$line" | awk '{print $2}')
         if [[ -f "$SOURCE_DIR/$file_path" ]]; then
-            mkdir -p "$OUT_DIR/$PROD_BACKUP_DIR/$(dirname "$file_path")"
-            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/$PROD_BACKUP_DIR/$file_path" && echo "Copied file: $file_path to $OUT_DIR/$PROD_BACKUP_DIR/$file_path" 
+            mkdir -p "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME/$(dirname "$file_path")"
+            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME/$file_path" && echo "Copied file: $file_path to $OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME/$file_path" 
         fi
     done < "$OUT_DIR/$README_DIR/diff_files.txt"
     echo "" # Add an empty line for better readability
 
     # Checkout the incoming branch and copy changed files to development directory
-    echo "Checking out incoming branch '$GIT_INCOMING' and copying changed files to '$OUT_DIR/$DEVELOPMENT_DIR'..."
+    echo "Checking out incoming branch '$GIT_INCOMING' and copying changed files to '$OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME'..."
     git -C "$SOURCE_DIR" checkout --quiet "$GIT_INCOMING"
     
     # Copy changed files from diff_files.txt
     while IFS= read -r line; do
         file_path=$(echo "$line" | awk '{print $2}')
         if [[ -f "$SOURCE_DIR/$file_path" ]]; then
-            mkdir -p "$OUT_DIR/$DEVELOPMENT_DIR/$(dirname "$file_path")"
-            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/$DEVELOPMENT_DIR/$file_path" && echo "Copied file: $file_path to $OUT_DIR/$DEVELOPMENT_DIR/$file_path"
+            mkdir -p "$OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME/$(dirname "$file_path")"
+            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME/$file_path" && echo "Copied file: $file_path to $OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME/$file_path"
         fi
     done < "$OUT_DIR/$README_DIR/diff_files.txt"
     echo "" # Add an empty line for better readability
