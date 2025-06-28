@@ -123,11 +123,14 @@ clean_out_dir() {
     if [[ -d "$OUT_DIR" ]]; then
       echo "Output directory '$OUT_DIR' already exists."
 
-      # Ask for confirmation before deleting the output directory
+      # Ask for confirmation before deleting the output directory. Exit if reject.
       read -p "Do you want to delete it? DANGER! PERMANENT DELETE AND CANNOT BE UNDONE! (y/n): " confirm
       if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
           echo "Deleting existing output directory '$OUT_DIR'..."
           rm -rf "$OUT_DIR"
+      else
+          echo "Phew... Exiting. Kindly provide a safe output directory to prepare the deployment."
+          exit 0
       fi
     fi
 
