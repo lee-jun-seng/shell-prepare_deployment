@@ -6,7 +6,7 @@
 #
 # This script accept 4 options:
 # 1. --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
-# 2. --out: The output directory to copy files to. Must be an absolute path. Mandatory.
+# 2. --out: The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.
 # 3. --git-target: The target branch for the Git repository. Mandatory.
 # 4. --git-incoming: The incoming branch for the Git repository. Mandatory.
 #
@@ -118,6 +118,23 @@ check_git_repository() {
     echo -e "Git checks completed successfully.\n"
 }
 
+# Clean the output directory
+clean_out_dir() {
+    if [[ -d "$OUT_DIR" ]]; then
+      echo "Output directory '$OUT_DIR' already exists."
+
+      # Ask for confirmation before deleting the output directory
+      read -p "Do you want to delete it? DANGER. CANNOT BE UNDONE! (y/n): " confirm
+      if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+          echo "Deleting existing output directory '$OUT_DIR'..."
+          rm -rf "$OUT_DIR"
+      fi
+    fi
+
+    # Create the output directory
+    mkdir -p "$OUT_DIR" && echo -e "Created output directory '$OUT_DIR'.\n"
+}
+
 # List Git changed files between two Git branches
 list_git_changed_files() {
     local target_branch="$1"
@@ -126,13 +143,13 @@ list_git_changed_files() {
 
     echo "Listing changed files between branches '$target_branch' and '$incoming_branch'..."
 
-    # Ensure the output directory exists. Create the file.
+    # Ensure the directory exists. Create the file.
     mkdir -p "$(dirname "$diff_file")" && touch "$diff_file"
 
     # Change to the source directory
     cd "$SOURCE_DIR" || exit 2
 
-    # List changed files and write to the output file
+    # List changed files and write to the file
     git diff --name-status "$target_branch" "$incoming_branch" > "$diff_file"
 
     if [[ $? -ne 0 ]]; then
@@ -148,17 +165,6 @@ list_git_changed_files() {
 # Prepare deployment folder according to MYwave deployment SOP
 prepare_deployment_folder() {
     echo "Preparing the deployment folder..."
-
-    # Delete output directories if they exist
-    if [[ -d "$OUT_DIR/suite1" ]]; then
-        echo "Warning: Deleting existing directory '$OUT_DIR/suite1'..."
-        rm -rf "$OUT_DIR/suite1"
-    fi
-
-    if [[ -d "$OUT_DIR/azureDev" ]]; then
-        echo "Warning: Deleting existing directory '$OUT_DIR/azureDev'..."
-        rm -rf "$OUT_DIR/azureDev"
-    fi
 
     echo "" # Add an empty line for better readability
 
@@ -210,6 +216,8 @@ prepare_deployment_folder() {
 # Main script execution
 
 read_options "$@"
+
+clean_out_dir
 
 check_git_repository
 
