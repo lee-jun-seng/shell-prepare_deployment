@@ -1,12 +1,14 @@
 #!/bin/bash
 
+set -x # Enable debugging output
+
 ################################################################################################################
 #
 # This script accept 4 options:
-# 1. --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path.
-# 2. --out: The output directory to copy files to. Must be an absolute path.
-# 3. --git-target: The target branch for the Git repository
-# 4. --git-incoming: The incoming branch for the Git repository
+# 1. --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
+# 2. --out: The output directory to copy files to. Must be an absolute path. Mandatory.
+# 3. --git-target: The target branch for the Git repository. Mandatory.
+# 4. --git-incoming: The incoming branch for the Git repository. Mandatory.
 #
 # Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch
 #
@@ -15,4 +17,98 @@
 # branches. It will write the list of files to a file called
 # "changed_files.txt" in the /path/to/out/_backup/ directory.
 #
+# Exit codes:
+# 1: Unknown option
+# 2: Invalid option value
+#
 ################################################################################################################
+
+# Function to read options
+read_options() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --source)
+                SOURCE_DIR="$2"
+                shift 2
+                ;;
+            --out)
+                OUT_DIR="$2"
+                shift 2
+                ;;
+            --git-target)
+                GIT_TARGET="$2"
+                shift 2
+                ;;
+            --git-incoming)
+                GIT_INCOMING="$2"
+                shift 2
+                ;;
+            *)
+                echo "Unknown option: $1"
+                exit 1
+                ;;
+        esac
+    done
+
+    if [[ -z "$SOURCE_DIR" || -z "$OUT_DIR" || -z "$GIT_TARGET" || -z "$GIT_INCOMING" ]]; then
+        echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
+        exit 1
+    fi
+}
+
+# Function to check if the source directory is a Git repository
+check_git_repository() {
+    if [[ ! -d "$SOURCE_DIR/.git" ]]; then
+        echo "Error: The source directory '$SOURCE_DIR' is not a Git repository."
+        exit 2
+    fi
+
+    echo -e "The source directory '$SOURCE_DIR' is a valid Git repository.\n"
+}
+
+# Function to list Git changed files between two Git branches
+list_git_changed_files() {
+    local target_branch="$1"
+    local incoming_branch="$2"
+    local output_file="$OUT_DIR/_backup/changed_files.txt"
+
+    # Ensure the output directory exists
+    mkdir -p "$(dirname "$output_file")" && touch "$output_file"
+
+    # Change to the source directory
+    cd "$SOURCE_DIR" || exit 2
+
+    # List changed files and write to the output file
+    git diff --name-status "$target_branch" "$incoming_branch" > "$output_file"
+
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Failed to list changed files between branches '$target_branch' and '$incoming_branch'."
+        exit 2
+    fi
+
+    echo "Changed files have been written to '$output_file'. Summary below:"
+    cat "$output_file"
+}
+
+################################################################################################################
+
+# Main script execution
+
+# Read options
+read_options "$@"
+
+# Display the options
+echo "Options:"
+echo "Source Directory: $SOURCE_DIR"
+echo "Output Directory: $OUT_DIR"
+echo "Git Target Branch: $GIT_TARGET"
+echo "Git Incoming Branch: $GIT_INCOMING"
+echo "" # Add an empty line for better readability
+
+# Check if the source directory is a Git repository
+echo "Checking if the source directory '$SOURCE_DIR' is a Git repository..."
+check_git_repository
+
+# List changed files between the target and incoming branches
+echo "Listing changed files between branches '$GIT_TARGET' and '$GIT_INCOMING' in the repository at '$SOURCE_DIR'..."
+list_git_changed_files "$GIT_TARGET" "$GIT_INCOMING"
