@@ -12,10 +12,14 @@
 #
 # Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch
 #
-# The script will first check if the source directory is a Git repository.
-# If it is, it will Git list the files changed between the target and incoming
-# branches. It will write the list of files to a file called
-# "diff_files.txt" in the /path/to/out/_backup/ directory.
+# The script will Git list the files changed between the target and incoming
+# branches. It will write the list of files to a file called "diff_files.txt"
+# in the /path/to/out/_backup/ directory.
+#
+# Then, it will prepare the deployment folder in accordance to MYwave deployment SOP.
+# - Checkout the target branch and copy all changed files to the /path/to/out/suite1/ directory.
+# - Checkout the incoming branch and copy all changed files to the /path/to/out/azureDev/ directory.
+# - It also creates a directory called _sql/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
 #
 # Exit codes:
 # 1: Unknown option
@@ -138,6 +142,67 @@ list_git_changed_files() {
 
     echo "Changed files have been written to '$diff_file'. Summary below:"
     cat "$diff_file"
+    echo "" # Add an empty line for better readability
+}
+
+# Prepare deployment folder according to MYwave deployment SOP
+prepare_deployment_folder() {
+    echo "Preparing the deployment folder..."
+
+    # Delete output directories if they exist
+    if [[ -d "$OUT_DIR/suite1" ]]; then
+        echo "Warning: Deleting existing directory '$OUT_DIR/suite1'..."
+        rm -rf "$OUT_DIR/suite1"
+    fi
+
+    if [[ -d "$OUT_DIR/azureDev" ]]; then
+        echo "Warning: Deleting existing directory '$OUT_DIR/azureDev'..."
+        rm -rf "$OUT_DIR/azureDev"
+    fi
+
+    echo "" # Add an empty line for better readability
+
+    # Create output directories
+    mkdir -p "$OUT_DIR/suite1" "$OUT_DIR/azureDev"
+
+    # Checkout the target branch and copy changed files to suite1
+    echo "Checking out target branch '$GIT_TARGET' and copying changed files to '$OUT_DIR/suite1'..."
+    git -C "$SOURCE_DIR" checkout --quiet "$GIT_TARGET"
+
+    # Copy changed files from diff_files.txt
+    while IFS= read -r line; do
+        file_path=$(echo "$line" | awk '{print $2}')
+        if [[ -f "$SOURCE_DIR/$file_path" ]]; then
+            mkdir -p "$OUT_DIR/suite1/$(dirname "$file_path")"
+            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/suite1/$file_path" && echo "Copied file: $file_path to $OUT_DIR/suite1/$file_path" 
+        fi
+    done < "$OUT_DIR/_backup/diff_files.txt"
+    echo "" # Add an empty line for better readability
+
+    # Checkout the incoming branch and copy changed files to azureDev
+    echo "Checking out incoming branch '$GIT_INCOMING' and copying changed files to '$OUT_DIR/azureDev'..."
+    git -C "$SOURCE_DIR" checkout --quiet "$GIT_INCOMING"
+    
+    # Copy changed files from diff_files.txt
+    while IFS= read -r line; do
+        file_path=$(echo "$line" | awk '{print $2}')
+        if [[ -f "$SOURCE_DIR/$file_path" ]]; then
+            mkdir -p "$OUT_DIR/azureDev/$(dirname "$file_path")"
+            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/azureDev/$file_path" && echo "Copied file: $file_path to $OUT_DIR/azureDev/$file_path"
+        fi
+    done < "$OUT_DIR/_backup/diff_files.txt"
+    echo "" # Add an empty line for better readability
+
+    # Create a directory _sql/
+    mkdir -p "$OUT_DIR/_sql" && echo "Created directory '$OUT_DIR/_sql'."
+
+    echo "Deployment folder prepared successfully."
+    echo "" # Add an empty line for better readability
+
+    # Remind to manually remove the deleted files from the server if diff_files.txt contains any deleted files
+    if grep -q "^D" "$OUT_DIR/_backup/diff_files.txt"; then
+        echo "Reminder: Please manually remove the files that were deleted from the server."
+    fi
 }
 
 ################################################################################################################
@@ -149,3 +214,5 @@ read_options "$@"
 check_git_repository
 
 list_git_changed_files "$GIT_TARGET" "$GIT_INCOMING"
+
+prepare_deployment_folder
