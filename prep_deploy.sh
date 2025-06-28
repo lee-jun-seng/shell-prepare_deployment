@@ -27,6 +27,12 @@
 #
 ################################################################################################################
 
+# CONSTANTS
+PROD_BACKUP_DIR="suite1"
+DEVELOPMENT_DIR="azureDev"
+MIGRATION_DIR="_sql"
+README_DIR="_readme"
+
 # Display usage information
 usage() {
     echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
@@ -142,7 +148,7 @@ clean_out_dir() {
 list_git_changed_files() {
     local target_branch="$1"
     local incoming_branch="$2"
-    local diff_file="$OUT_DIR/_backup/diff_files.txt"
+    local diff_file="$OUT_DIR/$README_DIR/diff_files.txt"
 
     echo "Listing changed files between branches '$target_branch' and '$incoming_branch'..."
 
@@ -172,44 +178,44 @@ prepare_deployment_folder() {
     echo "" # Add an empty line for better readability
 
     # Create output directories
-    mkdir -p "$OUT_DIR/suite1" "$OUT_DIR/azureDev"
+    mkdir -p "$OUT_DIR/$PROD_BACKUP_DIR" "$OUT_DIR/$DEVELOPMENT_DIR"
 
-    # Checkout the target branch and copy changed files to suite1
-    echo "Checking out target branch '$GIT_TARGET' and copying changed files to '$OUT_DIR/suite1'..."
+    # Checkout the target branch and copy changed files to production backup directory
+    echo "Checking out target branch '$GIT_TARGET' and copying changed files to '$OUT_DIR/$PROD_BACKUP_DIR'..."
     git -C "$SOURCE_DIR" checkout --quiet "$GIT_TARGET"
 
     # Copy changed files from diff_files.txt
     while IFS= read -r line; do
         file_path=$(echo "$line" | awk '{print $2}')
         if [[ -f "$SOURCE_DIR/$file_path" ]]; then
-            mkdir -p "$OUT_DIR/suite1/$(dirname "$file_path")"
-            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/suite1/$file_path" && echo "Copied file: $file_path to $OUT_DIR/suite1/$file_path" 
+            mkdir -p "$OUT_DIR/$PROD_BACKUP_DIR/$(dirname "$file_path")"
+            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/$PROD_BACKUP_DIR/$file_path" && echo "Copied file: $file_path to $OUT_DIR/$PROD_BACKUP_DIR/$file_path" 
         fi
-    done < "$OUT_DIR/_backup/diff_files.txt"
+    done < "$OUT_DIR/$README_DIR/diff_files.txt"
     echo "" # Add an empty line for better readability
 
-    # Checkout the incoming branch and copy changed files to azureDev
-    echo "Checking out incoming branch '$GIT_INCOMING' and copying changed files to '$OUT_DIR/azureDev'..."
+    # Checkout the incoming branch and copy changed files to development directory
+    echo "Checking out incoming branch '$GIT_INCOMING' and copying changed files to '$OUT_DIR/$DEVELOPMENT_DIR'..."
     git -C "$SOURCE_DIR" checkout --quiet "$GIT_INCOMING"
     
     # Copy changed files from diff_files.txt
     while IFS= read -r line; do
         file_path=$(echo "$line" | awk '{print $2}')
         if [[ -f "$SOURCE_DIR/$file_path" ]]; then
-            mkdir -p "$OUT_DIR/azureDev/$(dirname "$file_path")"
-            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/azureDev/$file_path" && echo "Copied file: $file_path to $OUT_DIR/azureDev/$file_path"
+            mkdir -p "$OUT_DIR/$DEVELOPMENT_DIR/$(dirname "$file_path")"
+            cp "$SOURCE_DIR/$file_path" "$OUT_DIR/$DEVELOPMENT_DIR/$file_path" && echo "Copied file: $file_path to $OUT_DIR/$DEVELOPMENT_DIR/$file_path"
         fi
-    done < "$OUT_DIR/_backup/diff_files.txt"
+    done < "$OUT_DIR/$README_DIR/diff_files.txt"
     echo "" # Add an empty line for better readability
 
-    # Create a directory _sql/
-    mkdir -p "$OUT_DIR/_sql" && echo "Created directory '$OUT_DIR/_sql'."
+    # Create the migration scripts directory
+    mkdir -p "$OUT_DIR/$MIGRATION_DIR" && echo "Created directory '$OUT_DIR/$MIGRATION_DIR'."
 
     echo "Deployment folder prepared successfully."
     echo "" # Add an empty line for better readability
 
     # Remind to manually remove the deleted files from the server if diff_files.txt contains any deleted files
-    if grep -q "^D" "$OUT_DIR/_backup/diff_files.txt"; then
+    if grep -q "^D" "$OUT_DIR/$README_DIR/diff_files.txt"; then
         echo "Reminder: Please manually remove the files that were deleted from the server."
     fi
 }
