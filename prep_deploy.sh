@@ -4,6 +4,15 @@
 
 ################################################################################################################
 #
+# The script will Git list the files changed between the target and incoming
+# branches. It will write the list of files to a file called "diff_files.txt"
+# in the /path/to/out/_readme/ directory.
+#
+# Then, it will prepare the deployment folder in accordance to MYwave deployment SOP.
+# - Checkout the target branch and copy all changed files to the /path/to/out/suite1/ directory.
+# - Checkout the incoming branch and copy all changed files to the /path/to/out/azureDev/ directory.
+# - It also creates a directory called _sql/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
+#
 # This script accept below options:
 # 1. --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
 # 2. --out: The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.
@@ -13,15 +22,7 @@
 #                If not provided, the script will guess it from the Git remote URL.
 #
 # Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch
-#
-# The script will Git list the files changed between the target and incoming
-# branches. It will write the list of files to a file called "diff_files.txt"
-# in the /path/to/out/_backup/ directory.
-#
-# Then, it will prepare the deployment folder in accordance to MYwave deployment SOP.
-# - Checkout the target branch and copy all changed files to the /path/to/out/suite1/ directory.
-# - Checkout the incoming branch and copy all changed files to the /path/to/out/azureDev/ directory.
-# - It also creates a directory called _sql/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
+# Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch --module hrms/epay
 #
 # Exit codes:
 # 1: Unknown option
@@ -37,7 +38,8 @@ README_DIR="_readme"
 
 # Functions declaration
 
-# Display usage information
+# Function: usage
+# Description: Displays the usage information for the script, including available options and their descriptions.
 usage() {
     echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
     echo "Options:"
@@ -49,7 +51,8 @@ usage() {
     echo "                   If not provided, the script will guess it from the Git remote URL."
 }
 
-# Read options
+# Function: read_options
+# Description: Reads and parses command-line options for the script.
 read_options() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -97,7 +100,8 @@ read_options() {
     echo "" # Add an empty line for better readability
 }
 
-# Perform Git checks on the source directory
+# Function: check_git_repository
+# Description: Perform Git checks on the source directory
 check_git_repository() {
     echo "Performing Git checks on the source directory '$SOURCE_DIR'..."
 
@@ -136,7 +140,8 @@ check_git_repository() {
     echo -e "Git checks completed successfully.\n"
 }
 
-# Clean the output directory
+# Function: clean_out_dir
+# Description: Clean the output directory
 clean_out_dir() {
     if [[ -d "$OUT_DIR" ]]; then
       echo "Output directory '$OUT_DIR' already exists."
@@ -156,7 +161,11 @@ clean_out_dir() {
     mkdir -p "$OUT_DIR" && echo -e "Created output directory '$OUT_DIR'.\n"
 }
 
-# List Git changed files between two Git branches
+# Function: list_git_changed_files
+# Description: List Git changed files between two Git branches
+# Parameters:
+# 1. target_branch: The target branch to compare against
+# 2. incoming_branch: The incoming branch to compare with the target branch
 list_git_changed_files() {
     local target_branch="$1"
     local incoming_branch="$2"
@@ -183,7 +192,8 @@ list_git_changed_files() {
     echo "" # Add an empty line for better readability
 }
 
-# Prepare deployment folder according to MYwave deployment SOP
+# Function: prepare_deployment_folder
+# Description: Prepare deployment folder according to MYwave deployment SOP
 prepare_deployment_folder() {
     echo "Preparing the deployment folder..."
 
@@ -232,7 +242,9 @@ prepare_deployment_folder() {
     fi
 }
 
-# Guess the module name if not provided from git remote URL
+# Function: guess_module_name
+# Description: Guess the module name if not provided from git remote URL.
+#              Expect - in the remote URL to be replaced directory separator.
 guess_module_name() {
     local guessed_mod_name=""
 
