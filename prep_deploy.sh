@@ -23,7 +23,7 @@
 #
 ################################################################################################################
 
-# Function to display usage information
+# Display usage information
 usage() {
     echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
     echo "Options:"
