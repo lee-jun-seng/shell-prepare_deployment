@@ -23,6 +23,16 @@
 #
 ################################################################################################################
 
+# Function to display usage information
+usage() {
+    echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
+    echo "Options:"
+    echo "  --source       The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory."
+    echo "  --out          The output directory to copy files to. Must be an absolute path. Mandatory."
+    echo "  --git-target   The target branch for the Git repository. Mandatory."
+    echo "  --git-incoming The incoming branch for the Git repository. Mandatory."
+}
+
 # Read options
 read_options() {
     while [[ $# -gt 0 ]]; do
@@ -45,15 +55,24 @@ read_options() {
                 ;;
             *)
                 echo "Unknown option: $1"
+                usage
                 exit 1
                 ;;
         esac
     done
 
     if [[ -z "$SOURCE_DIR" || -z "$OUT_DIR" || -z "$GIT_TARGET" || -z "$GIT_INCOMING" ]]; then
-        echo "Usage: $0 --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch"
+        usage
         exit 1
     fi
+
+    # Display the options
+    echo "Options:"
+    echo "Source Directory: $SOURCE_DIR"
+    echo "Output Directory: $OUT_DIR"
+    echo "Git Target Branch: $GIT_TARGET"
+    echo "Git Incoming Branch: $GIT_INCOMING"
+    echo "" # Add an empty line for better readability
 }
 
 # Perform Git checks on the source directory
@@ -125,16 +144,7 @@ list_git_changed_files() {
 
 # Main script execution
 
-# Read options
 read_options "$@"
-
-# Display the options
-echo "Options:"
-echo "Source Directory: $SOURCE_DIR"
-echo "Output Directory: $OUT_DIR"
-echo "Git Target Branch: $GIT_TARGET"
-echo "Git Incoming Branch: $GIT_INCOMING"
-echo "" # Add an empty line for better readability
 
 check_git_repository
 
