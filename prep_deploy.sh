@@ -24,10 +24,6 @@
 # Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch [--module module_name]
 # Usage: ./prep_deploy.sh -s /path/to/source/ -o /path/to/out/ -t target_branch -i incoming_branch [-m module_name]
 #
-# Exit codes:
-# 1: Unknown option
-# 2: Invalid option value
-#
 ################################################################################################################
 
 # CONSTANTS
@@ -35,6 +31,11 @@ PROD_BACKUP_DIR="suite1"
 DEVELOPMENT_DIR="azureDev"
 MIGRATION_DIR="_sql"
 README_DIR="_readme"
+
+# Exit codes
+EXIT_SUCCESS=0
+EXIT_UNKNOWN_OPTION=1
+EXIT_INVALID_OPTION_VALUE=2
 
 # Functions declaration
 
@@ -79,7 +80,7 @@ read_options() {
     *)
       echo "Unknown option: $1"
       usage
-      exit 1
+      exit $EXIT_UNKNOWN_OPTION
       ;;
     esac
   done
@@ -87,7 +88,7 @@ read_options() {
   # Check if mandatory options are provided
   if [[ -z "$SOURCE_DIR" || -z "$OUT_DIR" || -z "$GIT_TARGET" || -z "$GIT_INCOMING" ]]; then
     usage
-    exit 1
+    exit $EXIT_UNKNOWN_OPTION
   fi
 
   # Display the options
@@ -112,7 +113,7 @@ check_git_repository() {
   # Check if is valid Git repository
   if [[ ! -d "$SOURCE_DIR/.git" ]]; then
     echo "Error: The source directory '$SOURCE_DIR' is not a Git repository."
-    exit 2
+    exit $EXIT_INVALID_OPTION_VALUE
   fi
 
   echo "Is a valid Git repository."
@@ -120,7 +121,7 @@ check_git_repository() {
   # Check if the target branch exist in the Git repository
   if ! git -C "$SOURCE_DIR" show-ref --verify --quiet "refs/heads/$GIT_TARGET"; then
     echo "Error: The target branch '$GIT_TARGET' does not exist in the Git repository."
-    exit 2
+    exit $EXIT_INVALID_OPTION_VALUE
   fi
 
   echo "Target branch '$GIT_TARGET' exists."
@@ -128,7 +129,7 @@ check_git_repository() {
   # Check if the incoming branch exists in the Git repository
   if ! git -C "$SOURCE_DIR" show-ref --verify --quiet "refs/heads/$GIT_INCOMING"; then
     echo "Error: The incoming branch '$GIT_INCOMING' does not exist in the Git repository."
-    exit 2
+    exit $EXIT_INVALID_OPTION_VALUE
   fi
 
   echo "Incoming branch '$GIT_INCOMING' exists."
@@ -136,7 +137,7 @@ check_git_repository() {
   # Check if target and incoming branches are different
   if git -C "$SOURCE_DIR" diff --quiet "$GIT_TARGET" "$GIT_INCOMING"; then
     echo "Warning: The target branch '$GIT_TARGET' and incoming branch '$GIT_INCOMING' are the same. No changes to list."
-    exit 0
+    exit $EXIT_SUCCESS
   fi
 
   echo "Target and incoming branches are different."
@@ -157,7 +158,7 @@ clean_out_dir() {
       rm -rf "$OUT_DIR"
     else
       echo "Phew... Exiting. Kindly provide a safe output directory to prepare the deployment."
-      exit 0
+      exit $EXIT_SUCCESS
     fi
   fi
 
@@ -181,14 +182,14 @@ list_git_changed_files() {
   mkdir -p "$(dirname "$diff_file")" && touch "$diff_file"
 
   # Change to the source directory
-  cd "$SOURCE_DIR" || exit 2
+  cd "$SOURCE_DIR" || exit $EXIT_INVALID_OPTION_VALUE
 
   # List changed files and write to the file
   git diff --name-status "$target_branch" "$incoming_branch" >"$diff_file"
 
   if [[ $? -ne 0 ]]; then
     echo "Error: Failed to list changed files between branches '$target_branch' and '$incoming_branch'."
-    exit 2
+    exit $EXIT_INVALID_OPTION_VALUE
   fi
 
   echo "Changed files have been written to '$diff_file'. Summary below:"
@@ -297,7 +298,7 @@ read_options "$@"
 read -p "Kindly verify all parsed options before proceeding to preparing deployment folder. Do you want to proceed? (y/n): " confirm
 if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
   echo "Exiting. No changes made."
-  exit 0
+  exit $EXIT_SUCCESS
 fi
 echo "" # Add an empty line for better readability
 
