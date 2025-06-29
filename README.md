@@ -5,9 +5,11 @@ This script prepares the deployment of the MYwave application in accordance with
 - Current production codes will be parked in the `suite1` directory.
 - Development codes will be parked in the `azureDev` directory.
 - `_sql` directory will be created. It is used to store SQL migration scripts.
-- `_README` directory will be created. It is used to store the deployment related documentation.
-  - Git diffs will be stored in the `_README/diff_files.txt`.
-  - Any special instructions for the deployment can be stored here. Recommended filename for the deployment instructions is `_README/deployment_instructions.txt`.
+- `_readme` directory will be created. It is used to store the deployment related documentation. i.e.
+  - Deployment instructions for the deployment can be stored here.
+    - Recommended filename for the deployment instructions is `_readme/deployment_instructions.md`.
+    - The script will automatically create this file and remind release manager to delete files from server if necessary.
+  - Git diffs will be stored in the `_readme/diff_files.txt`. The script use this file to prepare the deployment folder.
   - Any deployment logs can be stored here.
 
 ## Usage

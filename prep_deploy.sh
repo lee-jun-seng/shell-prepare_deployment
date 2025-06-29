@@ -6,12 +6,13 @@
 #
 # The script will Git list the files changed between the target and incoming
 # branches. It will write the list of files to a file called "diff_files.txt"
-# in the /path/to/out/_readme/ directory.
+# in the /path/to/out/_readme/ directory. The script use this file to prepare the deployment folder.
 #
 # Then, it will prepare the deployment folder in accordance to MYwave deployment SOP.
 # - Checkout the target branch and copy all changed files to the /path/to/out/suite1/ directory.
 # - Checkout the incoming branch and copy all changed files to the /path/to/out/azureDev/ directory.
 # - It also creates a directory called _sql/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
+# - Prepare /path/to/out/_readme/deployment_instructions.md file with the deployment instructions if found deleted files that release manager needs to remove from server.
 #
 # This script accept below options:
 # 1. -s, --source: The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.
@@ -195,6 +196,24 @@ list_git_changed_files() {
     echo "" # Add an empty line for better readability
 }
 
+# Function: prepare_deployment_instruction_file
+# Description: Prepare deployment_instructions.md in the output directory
+#              If the file does not exist, it will be created. Otherwise, it will be left as is.
+prepare_deployment_instruction_file() {
+    local instruction_file="$OUT_DIR/$README_DIR/deployment_instructions.md"
+
+    # Create the deployment instructions file if it does not exist
+    if [[ ! -f "$instruction_file" ]]; then
+        mkdir -p "$(dirname "$instruction_file")" && touch "$instruction_file"
+
+        echo "# Deployment Instructions" > "$instruction_file"
+        echo "" >> "$instruction_file"
+        
+        echo "Created deployment instructions file at '$instruction_file'."
+        echo "" # Add an empty line for better readability
+    fi
+}
+
 # Function: prepare_deployment_folder
 # Description: Prepare deployment folder according to MYwave deployment SOP
 prepare_deployment_folder() {
@@ -241,7 +260,12 @@ prepare_deployment_folder() {
 
     # Remind to manually remove the deleted files from the server if diff_files.txt contains any deleted files
     if grep -q "^D" "$OUT_DIR/$README_DIR/diff_files.txt"; then
-        echo "Reminder: Please manually remove the files that were deleted from the server."
+        prepare_deployment_instruction_file
+
+        # Grep the deleted filenames and write to _README/deployment_instructions.md
+        echo "- Please manually delete the following files from the server:" >> "$OUT_DIR/$README_DIR/deployment_instructions.md"
+        grep "^D" "$OUT_DIR/$README_DIR/diff_files.txt" | awk '{print "  - "$2}' >> "$OUT_DIR/$README_DIR/deployment_instructions.md"
+        echo "Reminder: Please remind release manager to manually delete the files from server."
     fi
 }
 
