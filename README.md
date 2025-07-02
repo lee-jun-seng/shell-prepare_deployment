@@ -57,3 +57,9 @@ Additional notes on guessing the module name from the Git remote URL:
 - The script will attempt to extract the module name from the Git remote URL if the `-m ` and `--module` option is not provided.
 - The script currently will treat `-` as directory separator.
   - Example: the remote URL is `git@github.com:{account}/payroll-formula_setup.git`, the module name will be guessed as `payroll/formula_setup`.
+
+## Maintainers
+
+| Maintainer | Email                     |
+| ---------- | ------------------------- |
+| Lee Jun    | <lee-jun_seng@mywave.biz> |
