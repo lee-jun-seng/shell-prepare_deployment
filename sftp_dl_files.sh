@@ -20,6 +20,26 @@ LOCAL_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files/"        # Modi
 LOCAL_COMPARE_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files_remote"
 SSH_KEY="/Users/slj/.ssh/rsa/leejun_rsa"  # Path to your SSH private key for authentication
 
+# Function: sftp_download_files
+# Description: Connects to the SFTP server and downloads files from the specified remote directory.
+sftp_download_files() {
+  echo "Connecting to SFTP server $SFTP_HOST:$SFTP_PORT to download files from $REMOTE_DIR."
+
+  sftp -o IdentityFile="$SSH_KEY" -P "$SFTP_PORT" "$SFTP_USER@$SFTP_HOST" <<EOF
+  lcd $LOCAL_COMPARE_DIR
+  cd $REMOTE_DIR
+
+  # Iterate through the collected files and download each one
+  $(for file in "${FILES_TO_DOWNLOAD[@]}"; do
+    local_dir=$(dirname "$file")
+    mkdir -p "$LOCAL_COMPARE_DIR/$local_dir"
+    echo "get $file $LOCAL_COMPARE_DIR/$local_dir"
+  done)
+
+  bye
+EOF
+}
+
 # ----------------------------
 # SCRIPT LOGIC
 # ----------------------------
@@ -37,21 +57,7 @@ for file in "${FILES_TO_DOWNLOAD[@]}"; do
 done
 
 # Use SFTP to batch download all files
-echo "Connecting to SFTP server $SFTP_HOST:$SFTP_PORT to download files from $REMOTE_DIR."
-
-sftp -o IdentityFile="$SSH_KEY" -P "$SFTP_PORT" "$SFTP_USER@$SFTP_HOST" <<EOF
-lcd $LOCAL_COMPARE_DIR
-cd $REMOTE_DIR
-
-# Iterate through the collected files and download each one
-$(for file in "${FILES_TO_DOWNLOAD[@]}"; do
-  local_dir=$(dirname "$file")
-  mkdir -p "$LOCAL_COMPARE_DIR/$local_dir"
-  echo "get $file $LOCAL_COMPARE_DIR/$local_dir"
-done)
-
-bye
-EOF
+sftp_download_files
 
 # Confirm completion
 if [[ $? -eq 0 ]]; then
