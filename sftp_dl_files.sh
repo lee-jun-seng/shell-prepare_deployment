@@ -20,6 +20,28 @@ LOCAL_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files/"        # Modi
 LOCAL_COMPARE_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files_remote"
 SSH_KEY="/Users/slj/.ssh/rsa/leejun_rsa"  # Path to your SSH private key for authentication
 
+# Function: list_files_to_download
+# Description: Collects all files from the specified local directory into a global array.
+list_files_to_download() {
+  # Validate that the directory exists
+  if [[ ! -d "$LOCAL_DIR" ]]; then
+    echo "Error: Directory '$LOCAL_DIR' does not exist." >&2
+    return 1
+  fi
+
+  # Find all files and store relative paths in the array
+  while IFS= read -r -d '' file; do
+    relative_path=${file#$LOCAL_DIR} # Remove the base directory path
+    FILES_TO_DOWNLOAD+=("$relative_path")
+  done < <(find "$LOCAL_DIR" -type f -print0)
+
+  # Print the collected files (optional)
+  echo "Comparing the following files with remote server:"
+  for file in "${FILES_TO_DOWNLOAD[@]}"; do
+    echo "  - $file"
+  done
+}
+
 # Function: sftp_download_files
 # Description: Connects to the SFTP server and downloads files from the specified remote directory.
 sftp_download_files() {
@@ -44,19 +66,9 @@ EOF
 # SCRIPT LOGIC
 # ----------------------------
 
-# Collect all files to sftp download
 FILES_TO_DOWNLOAD=()
-while IFS= read -r -d '' file; do
-  RELATIVE_PATH=${file#$LOCAL_DIR} # Remove the base directory path to get relative paths
-  FILES_TO_DOWNLOAD+=("$RELATIVE_PATH")
-done < <(find "$LOCAL_DIR" -type f -print0) # Use -print0 for null-delimited file names (safe for special characters)
+list_files_to_download
 
-echo "Comparing following files with remote server:"
-for file in "${FILES_TO_DOWNLOAD[@]}"; do
-  echo "  - $file"
-done
-
-# Use SFTP to batch download all files
 sftp_download_files
 
 # Confirm completion
