@@ -1,0 +1,7 @@
+{
+  "host": "hostname",
+  "port": 22,
+  "user": "user",
+  "sshKey": "/path/to/key",
+  "remoteDir": "/remote/path/to/dir"
+}

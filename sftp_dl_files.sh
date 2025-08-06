@@ -7,33 +7,68 @@
 # CONFIGURATION
 # ----------------------------
 
-# The SFTP connection details
-SFTP_USER="leejun"           # Replace with the remote SFTP server username
-SFTP_HOST="mywavedevsg1apps1.southeastasia.cloudapp.azure.com"        # Replace with the remote SFTP server hostname or IP address
-SFTP_PORT=3310                        # Replace with the port if it's not the default SFTP port (22)
-
-# Remote directory to download files from
-REMOTE_DIR="/home/leejun/testsftpdl"    # Replace with the actual path on your SFTP server
+# Exit codes
+EXIT_SUCCESS=0
+EXIT_UNKNOWN_OPTION=1
+EXIT_INVALID_OPTION_VALUE=2
+EXIT_SFTP_ERROR=3
 
 # Local directory to save downloaded files
-LOCAL_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files/"        # Modify as needed; default is './downloaded_files'
 LOCAL_COMPARE_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files_remote"
-SSH_KEY="/Users/slj/.ssh/rsa/leejun_rsa"  # Path to your SSH private key for authentication
+
+# Function: read_options
+# Description: Reads and parses command-line options for the script.
+read_options() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    --sftp-json | -s)
+      SFTP_JSON="$2"
+      shift 2
+      ;;
+    --directory | -d)
+      DIRECTORY="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit $EXIT_UNKNOWN_OPTION
+      ;;
+    esac
+  done
+
+  # # Check if mandatory options are provided
+  if [[ -z "$SFTP_JSON" || -z "$DIRECTORY" ]]; then
+    exit $EXIT_UNKNOWN_OPTION
+  fi
+
+  # Display the options
+  echo "Options:"
+  echo "SFTP JSON: $SFTP_JSON"
+  echo "Directory: $DIRECTORY"
+  echo "" # Add an empty line for better readability
+
+  # Sanitize the directory
+  if [[ ! -d "$DIRECTORY" ]]; then
+    echo "Error: Directory '$DIRECTORY' does not exist." >&2
+    exit $EXIT_INVALID_OPTION_VALUE
+  fi
+
+  # The SFTP connection details
+  SFTP_HOST=$(cat "$SFTP_JSON" | jq -r '.host')
+  SFTP_PORT=$(cat "$SFTP_JSON" | jq -r '.port')
+  SFTP_USER=$(cat "$SFTP_JSON" | jq -r '.user')
+  SSH_KEY=$(cat "$SFTP_JSON" | jq -r '.sshKey')
+  REMOTE_DIR=$(cat "$SFTP_JSON" | jq -r '.remoteDir')
+}
 
 # Function: list_files_to_download
 # Description: Collects all files from the specified local directory into a global array.
 list_files_to_download() {
-  # Validate that the directory exists
-  if [[ ! -d "$LOCAL_DIR" ]]; then
-    echo "Error: Directory '$LOCAL_DIR' does not exist." >&2
-    return 1
-  fi
-
   # Find all files and store relative paths in the array
   while IFS= read -r -d '' file; do
     relative_path=${file#$LOCAL_DIR} # Remove the base directory path
     FILES_TO_DOWNLOAD+=("$relative_path")
-  done < <(find "$LOCAL_DIR" -type f -print0)
+  done < <(find "$DIRECTORY" -type f -print0)
 
   # Print the collected files (optional)
   echo "Comparing the following files with remote server:"
@@ -66,6 +101,8 @@ EOF
 # SCRIPT LOGIC
 # ----------------------------
 
+read_options "$@"
+
 FILES_TO_DOWNLOAD=()
 list_files_to_download
 
@@ -76,7 +113,7 @@ if [[ $? -eq 0 ]]; then
   echo "All files successfully downloaded to: $LOCAL_COMPARE_DIR"
 else
   echo "An error occurred during the SFTP transfer."
-  exit 1
+  exit $EXIT_SFTP_ERROR
 fi
 
 
