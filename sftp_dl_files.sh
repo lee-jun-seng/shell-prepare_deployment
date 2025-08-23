@@ -118,3 +118,4 @@ else
 fi
 
 
+exit $EXIT_SUCCESS
