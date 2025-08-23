@@ -99,6 +99,14 @@ sftp_download_files() {
   bye
 EOF
 
+  # Confirm sftp completed successfully
+  if [[ $? -eq 0 ]]; then
+    echo "All files successfully downloaded to: $LOCAL_COMPARE_DIR"
+  else
+    echo "An error occurred during the SFTP transfer."
+    exit $EXIT_SFTP_ERROR
+  fi
+
   echo "" # Add an empty line for better readability
 }
 
@@ -113,13 +121,6 @@ list_files_to_download
 
 sftp_download_files
 
-# Confirm completion
-if [[ $? -eq 0 ]]; then
-  echo "All files successfully downloaded to: $LOCAL_COMPARE_DIR"
-else
-  echo "An error occurred during the SFTP transfer."
-  exit $EXIT_SFTP_ERROR
-fi
 
 
 exit $EXIT_SUCCESS
