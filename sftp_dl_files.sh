@@ -14,7 +14,8 @@ EXIT_INVALID_OPTION_VALUE=2
 EXIT_SFTP_ERROR=3
 
 # Local directory to save downloaded files
-LOCAL_COMPARE_DIR="/Users/slj/WorkOS/Projects/shell-sftp-dl/sample_files_remote"
+UUID=$(uuidgen)
+LOCAL_COMPARE_DIR="/tmp/sftp-$UUID"
 
 # Function: read_options
 # Description: Reads and parses command-line options for the script.
