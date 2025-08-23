@@ -110,6 +110,27 @@ EOF
   echo "" # Add an empty line for better readability
 }
 
+# Function: perform_diff
+# Description: Compares the local directory with the downloaded directory and reports differences if any.
+perform_diff() {
+  # Diff local directory with downloaded directory
+  diff -r "$DIRECTORY" "$LOCAL_COMPARE_DIR"
+
+  # Check the exit status of diff
+  if [[ $? -eq 0 ]]; then
+    echo "No differences found between local and remote. 😁"
+  else
+    echo "DIFFERENCES FOUND between local and remote. 😡"
+    echo "Please double check if local files are up to date!"
+  fi
+
+  echo "" # Add an empty line for better readability
+
+  # Delete recursively downloaded directory after diff
+  echo "Cleaning up temporary directory: $LOCAL_COMPARE_DIR"
+  rm -rf "$LOCAL_COMPARE_DIR"
+}
+
 # ----------------------------
 # SCRIPT LOGIC
 # ----------------------------
@@ -121,6 +142,6 @@ list_files_to_download
 
 sftp_download_files
 
-
+perform_diff
 
 exit $EXIT_SUCCESS
