@@ -76,6 +76,8 @@ list_files_to_download() {
   for file in "${FILES_TO_DOWNLOAD[@]}"; do
     echo "  - $file"
   done
+
+  echo "" # Add an empty line for better readability
 }
 
 # Function: sftp_download_files
@@ -96,6 +98,8 @@ sftp_download_files() {
 
   bye
 EOF
+
+  echo "" # Add an empty line for better readability
 }
 
 # ----------------------------
