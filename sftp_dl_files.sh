@@ -113,8 +113,8 @@ EOF
 # Function: perform_diff
 # Description: Compares the local directory with the downloaded directory and reports differences if any.
 perform_diff() {
-  # Diff local directory with downloaded directory
-  diff -r "$DIRECTORY" "$LOCAL_COMPARE_DIR"
+  # Diff quitely local directory with downloaded directory
+  diff -qr "$DIRECTORY" "$LOCAL_COMPARE_DIR"
 
   # Check the exit status of diff
   if [[ $? -eq 0 ]]; then
