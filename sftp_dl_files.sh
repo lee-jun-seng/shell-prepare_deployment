@@ -44,9 +44,8 @@ read_options() {
 
   # Display the options
   echo "Options:"
-  echo "SFTP JSON: $SFTP_JSON"
   echo "Directory: $DIRECTORY"
-  echo "" # Add an empty line for better readability
+  echo "SFTP JSON: $SFTP_JSON"
 
   # Sanitize the directory
   if [[ ! -d "$DIRECTORY" ]]; then
@@ -60,6 +59,14 @@ read_options() {
   SFTP_USER=$(cat "$SFTP_JSON" | jq -r '.user')
   SSH_KEY=$(cat "$SFTP_JSON" | jq -r '.sshKey')
   REMOTE_DIR=$(cat "$SFTP_JSON" | jq -r '.remoteDir')
+
+  # Display the SFTP connection details (excluding sensitive information)
+  echo "SFTP Connection Details:"
+  echo "- Host: $SFTP_HOST"
+  echo "- Port: $SFTP_PORT"
+  echo "- User: $SFTP_USER"
+  echo "- Remote Directory: $REMOTE_DIR"
+  echo "" # Add an empty line for better readability
 }
 
 # Function: list_files_to_download
