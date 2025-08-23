@@ -66,7 +66,7 @@ read_options() {
 list_files_to_download() {
   # Find all files and store relative paths in the array
   while IFS= read -r -d '' file; do
-    relative_path=${file#$LOCAL_DIR} # Remove the base directory path
+    relative_path=${file#$DIRECTORY} # Remove the base directory path
     FILES_TO_DOWNLOAD+=("$relative_path")
   done < <(find "$DIRECTORY" -type f -print0)
 
