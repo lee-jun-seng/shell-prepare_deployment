@@ -67,6 +67,7 @@ check_dependencies() {
     echo "" # Add an empty line for better readability
   fi
 }
+
 # Function: read_options
 # Description: Reads and parses command-line options for the script.
 read_options() {
@@ -92,7 +93,7 @@ read_options() {
     esac
   done
 
-  # # Check if mandatory options are provided
+  # Check if mandatory options are provided
   if [[ -z "$SFTP_JSON" || -z "$DIRECTORY" ]]; then
     exit $EXIT_UNKNOWN_OPTION
   fi
