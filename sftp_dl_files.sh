@@ -10,9 +10,10 @@
 # The script accepts below options:
 # 1. -s | --sftp-json: Path to a JSON file containing SFTP connection details.
 # 2. -d | --directory: Path to the local directory containing files to compare.
+# 3. --remain-temp-dir: Optional flag to retain the temporary directory after script completion for debugging purposes.
 #
-# Usage: ./sftp_dl_files.sh --sftp-json sftp.json --directory /path/to/local/directory
-# Usage: ./sftp_dl_files.sh -s sftp.json -d /path/to/local/directory
+# Usage: ./sftp_dl_files.sh --sftp-json sftp.json --directory /path/to/local/directory [--remain-temp-dir]
+# Usage: ./sftp_dl_files.sh -s sftp.json -d /path/to/local/directory [--remain-temp-dir]
 #
 # ###############################################################################################################
 
@@ -27,15 +28,19 @@ EXIT_MISSING_DEPENDENCY=4
 UUID=$(uuidgen)
 LOCAL_COMPARE_DIR="/tmp/sftp-$UUID"
 
+# By default, the temporary directory will be deleted after the script completes
+REMOVE_TEMP_DIR=true
+
 # Functions declaration
 
 # Function: usage
 # Description: Displays the usage information for the script, including available options and their descriptions.
 usage() {
-  echo "Usage: $0 --sftp-json <path_to_sftp_json> --directory <path_to_local_directory>"
+  echo "Usage: $0 --sftp-json <path_to_sftp_json> --directory <path_to_local_directory> [--remain-temp-dir]"
   echo "Options:"
   echo "  -s, --sftp-json    Path to a JSON file containing SFTP connection details."
   echo "  -d, --directory    Path to the local directory containing files to compare."
+  echo "  --remain-temp-dir  Optional flag to retain the temporary directory after script completion for debugging purposes."
 }
 
 # Function: check_dependencies
@@ -74,6 +79,10 @@ read_options() {
     --directory | -d)
       DIRECTORY="${2%/}/" # Ensure trailing slash
       shift 2
+      ;;
+    --remain-temp-dir)
+      REMOVE_TEMP_DIR=false
+      shift
       ;;
     *)
       echo "Unknown option: $1"
@@ -179,9 +188,13 @@ perform_diff() {
 
   echo "" # Add an empty line for better readability
 
-  # Delete recursively downloaded directory after diff
-  echo "Cleaning up temporary directory: $LOCAL_COMPARE_DIR"
-  rm -rf "$LOCAL_COMPARE_DIR"
+  if [[ "$REMOVE_TEMP_DIR" == true ]]; then
+    # Delete recursively downloaded directory after diff
+    echo "Cleaning up temporary directory: $LOCAL_COMPARE_DIR"
+    rm -rf "$LOCAL_COMPARE_DIR"
+  else 
+    echo "Temporary directory retained: $LOCAL_COMPARE_DIR"
+  fi
 }
 
 ################################################################################################################
