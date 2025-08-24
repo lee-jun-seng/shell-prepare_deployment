@@ -176,18 +176,9 @@ EOF
 # Function: perform_diff
 # Description: Compares the local directory with the downloaded directory and reports differences if any.
 perform_diff() {
-  # Diff quitely local directory with downloaded directory
+  # Diff quitely local directory with downloaded directory and capture the exit status immediately
   diff -qr "$DIRECTORY" "$LOCAL_COMPARE_DIR"
-
-  # Check the exit status of diff
-  if [[ $? -eq 0 ]]; then
-    echo "No differences found between local and remote. 😁"
-  else
-    echo "DIFFERENCES FOUND between local and remote. 😡"
-    echo "Please double check if local files are up to date!"
-  fi
-
-  echo "" # Add an empty line for better readability
+  diff_status=$?
 
   if [[ "$REMOVE_TEMP_DIR" == true ]]; then
     # Delete recursively downloaded directory after diff
@@ -196,6 +187,19 @@ perform_diff() {
   else 
     echo "Temporary directory retained: $LOCAL_COMPARE_DIR"
   fi
+
+  echo "" # Add an empty line for better readability
+
+  # Check the exit status of diff
+  if [[ diff_status -eq 0 ]]; then
+    echo "No differences found between local and remote. 😁"
+  else
+    echo "DIFFERENCES FOUND between local and remote. 😡"
+    echo "Please double check if local files are up to date!"
+    exit $diff_status
+  fi
+
+  echo "" # Add an empty line for better readability
 }
 
 ################################################################################################################
