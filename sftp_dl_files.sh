@@ -21,6 +21,7 @@ EXIT_SUCCESS=0
 EXIT_UNKNOWN_OPTION=1
 EXIT_INVALID_OPTION_VALUE=2
 EXIT_SFTP_ERROR=3
+EXIT_MISSING_DEPENDENCY=4
 
 # Local directory to save downloaded files
 UUID=$(uuidgen)
@@ -28,6 +29,30 @@ LOCAL_COMPARE_DIR="/tmp/sftp-$UUID"
 
 # Functions declaration
 
+# Function: check_dependencies
+# Description: Checks if required dependencies are installed.
+check_dependencies() {
+  dependencies=("ssh" "sftp" "diff" "uuidgen" "jq")
+  missing_dependencies=()
+
+  for cmd in "${dependencies[@]}"; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      missing_dependencies+=("$cmd")
+    fi
+  done
+
+  if [ ${#missing_dependencies[@]} -gt 0 ]; then
+    echo "Error: The following dependencies are missing:"
+    for dep in "${missing_dependencies[@]}"; do
+      echo "  - $dep"
+    done
+    echo "Please install the missing dependencies and try again."
+    exit $EXIT_MISSING_DEPENDENCY
+  else
+    echo "All required dependencies are installed."
+    echo "" # Add an empty line for better readability
+  fi
+}
 # Function: read_options
 # Description: Reads and parses command-line options for the script.
 read_options() {
@@ -152,6 +177,8 @@ perform_diff() {
 ################################################################################################################
 
 # Main script execution
+
+check_dependencies
 
 read_options "$@"
 
