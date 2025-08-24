@@ -1,11 +1,20 @@
 #!/bin/bash
 
-# This script downloads the latest production codes or scripts from a remote SFTP server.
-# It will iterate through a directory, and download all files in the directory from the remote SFTP server.
+# set -x # Enable debugging output
 
-# ----------------------------
-# CONFIGURATION
-# ----------------------------
+################################################################################################################
+#
+# This script list all files in a given local directory, and download the same files from a remote SFTP server to a temporary directory.
+# It then performs a diff between the local directory and the downloaded files to check for differences.
+#
+# The script accepts below options:
+# 1. -s | --sftp-json: Path to a JSON file containing SFTP connection details.
+# 2. -d | --directory: Path to the local directory containing files to compare.
+#
+# Usage: ./sftp_dl_files.sh --sftp-json sftp.json --directory /path/to/local/directory
+# Usage: ./sftp_dl_files.sh -s sftp.json -d /path/to/local/directory
+#
+# ###############################################################################################################
 
 # Exit codes
 EXIT_SUCCESS=0
@@ -16,6 +25,8 @@ EXIT_SFTP_ERROR=3
 # Local directory to save downloaded files
 UUID=$(uuidgen)
 LOCAL_COMPARE_DIR="/tmp/sftp-$UUID"
+
+# Functions declaration
 
 # Function: read_options
 # Description: Reads and parses command-line options for the script.
@@ -138,9 +149,9 @@ perform_diff() {
   rm -rf "$LOCAL_COMPARE_DIR"
 }
 
-# ----------------------------
-# SCRIPT LOGIC
-# ----------------------------
+################################################################################################################
+
+# Main script execution
 
 read_options "$@"
 
