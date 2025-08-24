@@ -31,7 +31,8 @@ Sample command to run the script:
     --out /path/to/out/ \
     --git-target target_branch \
     --git-incoming incoming_branch \
-    [--module module_name]
+    [--module module_name] \
+    [--ensure-prod-backup-latest]
 
 # Shorthand version
 ./prep_deploy.sh \
@@ -39,18 +40,20 @@ Sample command to run the script:
     -o /path/to/out/ \
     -t target_branch \
     -i incoming_branch \
-    [-m module_name]
+    [-m module_name] \
+    [-z]
 ```
 
 This script accept below options:
 
-| Option               | Description                                                                                                                      |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `-s, --source`       | The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.                          |
-| `-o, --out`          | The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.                              |
-| `-t, --git-target`   | The target branch name for the Git repository. Mandatory.                                                                        |
-| `-i, --git-incoming` | The incoming branch name for the Git repository. Mandatory.                                                                      |
-| `-m, --module`       | The module name to be used in the output directory. Optional. If not provided, the script will guess it from the Git remote URL. |
+| Option                            | Description                                                                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `-s, --source`                    | The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.                          |
+| `-o, --out`                       | The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.                              |
+| `-t, --git-target`                | The target branch name for the Git repository. Mandatory.                                                                        |
+| `-i, --git-incoming`              | The incoming branch name for the Git repository. Mandatory.                                                                      |
+| `-m, --module`                    | The module name to be used in the output directory. Optional. If not provided, the script will guess it from the Git remote URL. |
+| `-z, --ensure-prod-backup-latest` | Ensure the latest production backup is same on the SFTP server. Optional. Default is no check.                                   |
 
 Additional notes on guessing the module name from the Git remote URL:
 
