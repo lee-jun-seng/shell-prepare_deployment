@@ -12,6 +12,8 @@ This script prepares the deployment of the MYwave application in accordance with
   - Git diffs will be stored in the `_readme/diff_files.txt`. The script use this file to prepare the deployment folder.
   - Any deployment logs can be stored here.
 
+This script optionally can ensure the latest production backup is same on the SFTP server if the SFTP JSON configuration file is provided.
+
 ## Usage
 
 Make sure you have the necessary permissions to run the script and that you have Git installed on your system.
@@ -32,7 +34,7 @@ Sample command to run the script:
     --git-target target_branch \
     --git-incoming incoming_branch \
     [--module module_name] \
-    [--ensure-prod-backup-latest]
+    [--sftp-json sftp.json]
 
 # Shorthand version
 ./prep_deploy.sh \
@@ -41,19 +43,19 @@ Sample command to run the script:
     -t target_branch \
     -i incoming_branch \
     [-m module_name] \
-    [-z]
+    [-j]
 ```
 
 This script accept below options:
 
-| Option                            | Description                                                                                                                      |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `-s, --source`                    | The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.                          |
-| `-o, --out`                       | The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.                              |
-| `-t, --git-target`                | The target branch name for the Git repository. Mandatory.                                                                        |
-| `-i, --git-incoming`              | The incoming branch name for the Git repository. Mandatory.                                                                      |
-| `-m, --module`                    | The module name to be used in the output directory. Optional. If not provided, the script will guess it from the Git remote URL. |
-| `-z, --ensure-prod-backup-latest` | Ensure the latest production backup is same on the SFTP server. Optional. Default is no check.                                   |
+| Option               | Description                                                                                                                                                                                         |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-s, --source`       | The source directory to copy files from. Must be a Git repository. Must be an absolute path. Mandatory.                                                                                             |
+| `-o, --out`          | The output directory to copy files to (aka deployment folder). Must be an absolute path. Mandatory.                                                                                                 |
+| `-t, --git-target`   | The target branch name for the Git repository. Mandatory.                                                                                                                                           |
+| `-i, --git-incoming` | The incoming branch name for the Git repository. Mandatory.                                                                                                                                         |
+| `-m, --module`       | The module name to be used in the output directory. Optional. If not provided, the script will guess it from the Git remote URL.                                                                    |
+| `-j, --sftp-json`    | The SFTP JSON configuration file. Optional. If provided, the script will ensure the latest production backup is same on the SFTP server. Please refer `./libs/sftp_dl_cmp_files/sftp.json.example`. |
 
 Additional notes on guessing the module name from the Git remote URL:
 

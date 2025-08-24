@@ -20,10 +20,10 @@
 # 3. -t, --git-target: The target branch name for the Git repository. Mandatory.
 # 4. -i, --git-incoming: The incoming branch name for the Git repository. Mandatory.
 # 5. -m, --module: The module name to be used in the output directory. Optional. If not provided, the script will guess it from the Git remote URL.
-# 6. -z, --ensure-prod-backup-latest: Ensure the latest production backup is same on the SFTP server. Optional. Default is no check.
+# 6. -j, --sftp-json: The SFTP JSON configuration file. Optional. If provided, the script will ensure the latest production backup is same on the SFTP server.
 #
-# Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch [--module module_name] [--ensure-prod-backup-latest]
-# Usage: ./prep_deploy.sh -s /path/to/source/ -o /path/to/out/ -t target_branch -i incoming_branch [-m module_name] [-z]
+# Usage: ./prep_deploy.sh --source /path/to/source/ --out /path/to/out/ --git-target target_branch --git-incoming incoming_branch [--module module_name] [--sftp-json sftp.json]
+# Usage: ./prep_deploy.sh -s /path/to/source/ -o /path/to/out/ -t target_branch -i incoming_branch [-m module_name] [-j sftp.json] 
 #
 ################################################################################################################
 
@@ -32,7 +32,6 @@ PROD_BACKUP_DIR="suite1"
 DEVELOPMENT_DIR="azureDev"
 MIGRATION_DIR="_sql"
 README_DIR="_readme"
-ENSURE_PROD_BACKUP_LATEST=false
 
 # Exit codes
 EXIT_SUCCESS=0
@@ -52,6 +51,8 @@ usage() {
   echo "  -i, --git-incoming The incoming branch name for the Git repository. Mandatory."
   echo "  -m, --module       The module name to be used in the output directory. Optional."
   echo "                       If not provided, the script will guess it from the Git remote URL."
+  echo "  -j, --sftp-json    The SFTP JSON configuration file. Optional."
+  echo "                       If provided, the script will ensure the latest production backup is same on the SFTP server."
 }
 
 # Function: read_options
@@ -79,9 +80,9 @@ read_options() {
       MODULE_NAME="$2"
       shift 2
       ;;
-    --ensure-prod-backup-latest | -z)
-      ENSURE_PROD_BACKUP_LATEST=true
-      shift
+    --sftp-json | -j)
+      SFTP_JSON="$2"
+      shift 2
       ;;
     *)
       echo "Unknown option: $1"
@@ -297,10 +298,10 @@ guess_module_name() {
 # Function: check_prod_backup_latest
 # Description: Ensure the latest production backup is same on the SFTP server
 check_prod_backup_latest() {
-  if [[ "$ENSURE_PROD_BACKUP_LATEST" == true ]]; then
+  if [[ -n "$SFTP_JSON" ]]; then
     echo "Ensuring the latest production backup is available on the SFTP server..."
     tmp_dir="$(dirname "${BASH_SOURCE[0]}")"
-    "$tmp_dir/libs/sftp_dl_cmp_files/sftp_dl_cmp_files.sh" -s "$tmp_dir/sftp.json" -d "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME"
+    "$tmp_dir/libs/sftp_dl_cmp_files/sftp_dl_cmp_files.sh" -s "$tmp_dir/$SFTP_JSON" -d "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME"
   fi
 }
 
