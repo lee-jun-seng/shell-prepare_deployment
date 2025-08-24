@@ -299,7 +299,7 @@ guess_module_name() {
 # Description: Ensure the latest production backup is same on the SFTP server
 check_prod_backup_latest() {
   if [[ -n "$SFTP_JSON" ]]; then
-    echo "Ensuring the latest production backup is available on the SFTP server..."
+    echo "Ensuring the latest production backup is same on the SFTP server..."
     tmp_dir="$(dirname "${BASH_SOURCE[0]}")"
     "$tmp_dir/libs/sftp_dl_cmp_files/sftp_dl_cmp_files.sh" -s "$tmp_dir/$SFTP_JSON" -d "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME"
   fi
