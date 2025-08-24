@@ -27,7 +27,7 @@ read_options() {
       shift 2
       ;;
     --directory | -d)
-      DIRECTORY="$2"
+      DIRECTORY="${2%/}/" # Ensure trailing slash
       shift 2
       ;;
     *)
