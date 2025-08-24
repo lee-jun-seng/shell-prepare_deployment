@@ -311,3 +311,5 @@ guess_module_name
 list_git_changed_files "$GIT_TARGET" "$GIT_INCOMING"
 
 prepare_deployment_folder
+
+exit $EXIT_SUCCESS
