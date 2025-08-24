@@ -29,6 +29,15 @@ LOCAL_COMPARE_DIR="/tmp/sftp-$UUID"
 
 # Functions declaration
 
+# Function: usage
+# Description: Displays the usage information for the script, including available options and their descriptions.
+usage() {
+  echo "Usage: $0 --sftp-json <path_to_sftp_json> --directory <path_to_local_directory>"
+  echo "Options:"
+  echo "  -s, --sftp-json    Path to a JSON file containing SFTP connection details."
+  echo "  -d, --directory    Path to the local directory containing files to compare."
+}
+
 # Function: check_dependencies
 # Description: Checks if required dependencies are installed.
 check_dependencies() {
@@ -68,6 +77,7 @@ read_options() {
       ;;
     *)
       echo "Unknown option: $1"
+      usage
       exit $EXIT_UNKNOWN_OPTION
       ;;
     esac
