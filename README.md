@@ -2,7 +2,13 @@
 
 This script prepares the deployment of the MYwave application in accordance with the MYwave Deployment Standard Operating Procedure (SOP).
 
-- Current production codes will be parked in the `suite1` directory.
+- `suite1` vs `suite1_github`
+  - Server codes will be parked in the `suite1` directory.
+  - Git `main` branch codes will be parked in the `suite1_github` directory.
+  - As we are not implementing automated deployment yet, occasionally the team may deploy codes to the server and forget to push the changes to Git `main` branch.
+  - In such cases, the `suite1` directory will have the actual codes from server while the `suite1_github` directory will not.
+  - The script will alert such discrepancies and developer shall investigate and resolve them.
+  - But if the developer misses the alert, the release manager can also identify such discrepancies during deployment process by comparing the `suite1` and `suite1_github` directories.
 - Development codes will be parked in the `azureDev` directory.
 - `_sql` directory will be created. It is used to store SQL migration scripts.
 - `_readme` directory will be created. It is used to store the deployment related documentation. i.e.

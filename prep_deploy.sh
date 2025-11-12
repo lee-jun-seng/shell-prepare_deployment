@@ -28,7 +28,8 @@
 ################################################################################################################
 
 # CONSTANTS
-PROD_BACKUP_DIR="suite1"
+PROD_BACKUP_DIR="suite1_github"
+SERVER_BACKUP_DIR="suite1"
 DEVELOPMENT_DIR="azureDev"
 MIGRATION_DIR="_sql"
 README_DIR="_readme"
@@ -301,7 +302,7 @@ check_prod_backup_latest() {
   if [[ -n "$SFTP_JSON" ]]; then
     echo "Ensuring the latest production backup is same on the SFTP server..."
     tmp_dir="$(dirname "${BASH_SOURCE[0]}")"
-    "$tmp_dir/libs/sftp_dl_cmp_files/sftp_dl_cmp_files.sh" -s "$tmp_dir/$SFTP_JSON" -d "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME"
+    "$tmp_dir/libs/sftp_dl_cmp_files/sftp_dl_cmp_files.sh" -s "$tmp_dir/$SFTP_JSON" -d "$OUT_DIR/$PROD_BACKUP_DIR/$MODULE_NAME" -t "$OUT_DIR/$SERVER_BACKUP_DIR/$MODULE_NAME" --remain-temp-dir
   fi
 }
 
