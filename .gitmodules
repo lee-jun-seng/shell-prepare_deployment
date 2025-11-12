@@ -1,0 +1,4 @@
+[submodule "libs/sftp_dl_cmp_files"]
+	path = libs/sftp_dl_cmp_files
+	url = git@github.com:lee-jun-seng/shell-sftp_dl_cmp_files.git
+	branch = main
