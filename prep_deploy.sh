@@ -11,7 +11,7 @@
 # Then, it will prepare the deployment folder in accordance to MYwave deployment SOP.
 # - Checkout the target branch and copy all changed files to the /path/to/out/suite1/ directory.
 # - Checkout the incoming branch and copy all changed files to the /path/to/out/azureDev/ directory.
-# - It also creates a directory called _sql/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
+# - It also creates a directory called _migration/ in the /path/to/out/ directory. All migration scripts should be placed in this directory.
 # - Prepare /path/to/out/_readme/deployment_instructions.md file with the deployment instructions if found deleted files that release manager needs to remove from server.
 #
 # This script accept below options:
@@ -31,13 +31,14 @@
 PROD_BACKUP_DIR="suite1_github"
 SERVER_BACKUP_DIR="suite1"
 DEVELOPMENT_DIR="azureDev"
-MIGRATION_DIR="_sql"
+MIGRATION_DIR="_migration"
 README_DIR="_readme"
 
 # Exit codes
 EXIT_SUCCESS=0
 EXIT_UNKNOWN_OPTION=1
 EXIT_INVALID_OPTION_VALUE=2
+EXIT_ERROR_OPERATION=99
 
 # Functions declaration
 
@@ -219,7 +220,6 @@ prepare_deployment_instruction_file() {
     echo "" >>"$instruction_file"
 
     echo "Created deployment instructions file at '$instruction_file'."
-    echo "" # Add an empty line for better readability
   fi
 }
 
@@ -261,11 +261,27 @@ prepare_deployment_folder() {
   done <"$OUT_DIR/$README_DIR/diff_files.txt"
   echo "" # Add an empty line for better readability
 
-  # Create the migration scripts directory
-  mkdir -p "$OUT_DIR/$MIGRATION_DIR" && echo "Created directory '$OUT_DIR/$MIGRATION_DIR'."
+  # Detect if `_migration` folder exist in the output directories. If yes, move that folder one level up and remind to run migration scripts
+  if [[ -d "$OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME/$MIGRATION_DIR" ]]; then
+    mv "$OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME/$MIGRATION_DIR" $OUT_DIR
 
-  echo "Deployment folder prepared successfully."
-  echo "" # Add an empty line for better readability
+    if [[ $? -eq 0 ]]; then
+      echo "Found migration folder. Moved migration folder to $OUT_DIR/$MIGRATION_DIR."
+    else
+      echo "Error: Found migration folder $OUT_DIR/$DEVELOPMENT_DIR/$MODULE_NAME/$MIGRATION_DIR but failed to move."
+      exit $EXIT_ERROR_OPERATION
+    fi
+
+    prepare_deployment_instruction_file
+
+    # Remind to run migration scripts if migration scripts are found in the _migration directory
+    # List files in the _migration directory excluding rollback folder
+    echo "- Please run the migration scripts:" >>"$OUT_DIR/$README_DIR/deployment_instructions.md"
+    ls -1F "$OUT_DIR/$MIGRATION_DIR" | grep -v 'rollback/' | awk '{print "  - "$0}' >>"$OUT_DIR/$README_DIR/deployment_instructions.md"
+    echo "" >>"$OUT_DIR/$README_DIR/deployment_instructions.md" # Add an empty line for better readability
+
+    echo "Reminder: Please remind release manager to run the migration scripts."
+  fi
 
   # Remind to manually remove the deleted files from the server if diff_files.txt contains any deleted files
   if grep -q "^D" "$OUT_DIR/$README_DIR/diff_files.txt"; then
@@ -274,8 +290,14 @@ prepare_deployment_folder() {
     # Grep the deleted filenames and write to _README/deployment_instructions.md
     echo "- Please manually delete the following files from the server:" >>"$OUT_DIR/$README_DIR/deployment_instructions.md"
     grep "^D" "$OUT_DIR/$README_DIR/diff_files.txt" | awk '{print "  - "$2}' >>"$OUT_DIR/$README_DIR/deployment_instructions.md"
+    echo "" >>"$OUT_DIR/$README_DIR/deployment_instructions.md" # Add an empty line for better readability
+
     echo "Reminder: Please remind release manager to manually delete the files from server."
   fi
+
+  echo "" # Add an empty line for better readability
+  echo "Deployment folder prepared successfully."
+  echo "" # Add an empty line for better readability
 }
 
 # Function: guess_module_name
